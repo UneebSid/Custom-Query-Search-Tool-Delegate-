@@ -3,11 +3,14 @@ import axios from 'axios'
 
 const useFetch = (url) => {
 
-const [metricDefinitions, setData] = useState(null);
+const [metricDefinitions, setData] = useState([]);
 const [loading, setLoading] = useState(false);
 const [error, setError] = useState(null);
 
 
+        
+
+       
 
     useEffect(()=>{
         setLoading(true);
@@ -22,13 +25,15 @@ const [error, setError] = useState(null);
         .finally(()=>{
             setLoading(false);
         });
-    },[url]);
+    },[]);
+    
 
-    return {metricDefinitions,loading,error};
+
+
+    return {metricDefinitions, loading, error};
       
 }
-
-    
+ 
 
 
 
