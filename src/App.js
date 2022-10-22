@@ -1,7 +1,8 @@
 
 import Header from './Header';
-import './App.css';
-import { Container, Segment, Dropdown, Input, Form } from 'semantic-ui-react';
+import TableRow from './TableRow'
+import style from './index.js'
+import { Container, Segment, Dropdown, Input, Form, Table, Search, Menu, Icon, TableCell, Pagination } from 'semantic-ui-react';
 import { useState, useEffect } from 'react';
 import { ReactDatez } from 'react-datez';
 import Restaurant from './Datafiles/RestaurantData.json';
@@ -17,13 +18,35 @@ function App() {
   const [restuarantIds, setRestaurantIds] = useState([]);
   const [fromHour, setFromHour] = useState(6);
   const [toHour, setToHour] = useState(29);
-  const [fromDate, setFromDate] = useState("2021-10-1");
-  const [toDate, setToDate] = useState("2021-10-31");
+  const [fromDate, setFromDate] = useState();
+  const [toDate, setToDate] = useState();
   const [compareType, setCompareType] = useState();
   const [metricDefinitions, setMetricDefinitions] = useState([]);
   const [metricCode, setMetricCode] = useState("");
   const [compareValue, setCompareValue] = useState(0);
-  const [searchData, setSearchData] = useState([]);
+  const [searchedData, setSearchData] = useState([]);
+  const [activePage, setActivePage] = useState(1)
+
+  const totalNumberOfPages = Math.ceil(searchedData.length/20) 
+  let transactionDataPaginated =[]
+
+  if(activePage<totalNumberOfPages)  //If we are not yet at the last page, there are more than 20 rows left to display
+  {
+    transactionDataPaginated = searchedData.slice(activePage*20-20,activePage*20)
+  }
+  else if(activePage===totalNumberOfPages) // If we are at the last page than there are only 20 or less rows left to display
+  {
+    
+    transactionDataPaginated = searchedData.slice(activePage*20-20)
+  }
+
+  const handlePaginationChange = (pageNumber) =>{
+    setActivePage(pageNumber)
+  
+  }
+  
+
+  
 
   const RestaurantOptions = Restaurant.map(rest => {
     return {
@@ -49,7 +72,7 @@ function App() {
     }
   })
 
-  const submit = ()=>{  
+  const submit = () => {
     const input = {
       restaurantIds: restuarantIds,
       fromDate: fromDate,
@@ -66,23 +89,24 @@ function App() {
       ]
     }
 
-      //console.log(`${JSON.stringify(input)}`)    
-      postRequest("https://customsearchquerytoolapi.azurewebsites.net/Search/Query", input).then((data)=>{  
+
+    postRequest("https://customsearchquerytoolapi.azurewebsites.net/Search/Query", input).then((data) => {
       setSearchData(data);
-      console.log(data);
       
-    }).catch((err)=>{
+
+
+    }).catch((err) => {
       console.log(err);
     })
   }
 
-  
+
 
 
   useEffect(() => {
     getData("https://customsearchquerytoolapi.azurewebsites.net/Search/MetricDefinitions").then((data) => {
       setMetricDefinitions(data);
-      
+
     });
   }, [])
 
@@ -113,13 +137,14 @@ function App() {
     { key: '23', text: '4 am (next Day', value: 28 },
     { key: '24', text: '5 am (next day)', value: 29 }
   ]
-
-  console.log();
+ 
 
   return (
-    <Container>
+    <body>
+    <Container >
+     
       <Header title='Restaurant Query Search Tool' />
-      <Segment>
+      <Segment >
         <Form onSubmit={submit} >
           <Form.Field>
 
@@ -203,9 +228,9 @@ function App() {
                   setToHour(data.value);
                 }} />
             </Form.Field>
-          </Form.Group>
+          {/* </Form.Group>
 
-          <Form.Group>
+          <Form.Group> */}
             <Form.Field>
 
               <label>Metric criteria</label>
@@ -240,16 +265,16 @@ function App() {
               />
             </Form.Field>
 
-            <Form.Field>
+            <Form.Field >
 
               <label>Value</label>
 
               {/** Input component to store user entered value for selected metric */}
 
               <Input
-                
+                type = 'number'
                 value={compareValue}
-                placeholder={'amount'}
+                placeholder={'value'}
                 onChange={(event, data) => {
                   setCompareValue(Number.parseInt(data.value));
                 }}
@@ -258,10 +283,99 @@ function App() {
             </Form.Field>
           </Form.Group>
 
-          <Form.Button>submit</Form.Button>
+          <Form.Button color='black'>submit</Form.Button>
         </Form>
       </Segment>
+      
+      <Segment textAlign='center' floated='left' size='mini' color='green' >
+        {searchedData.length===0? <p>No result</p>: 
+           <Table celled compact size='small' textAlign ='left'>
+            <Table.Header>
+             <Table.Row>
+              <Table.HeaderCell>
+                RestaurantId
+              </Table.HeaderCell>
+              <Table.HeaderCell>
+                Restuarant Name
+              </Table.HeaderCell>
+              <Table.HeaderCell>
+                Business Date
+              </Table.HeaderCell>
+              <Table.HeaderCell>
+                Order Number
+              </Table.HeaderCell>
+              <Table.HeaderCell>
+                Order Time
+              </Table.HeaderCell>
+
+              {metricDefinitions.map(md => {
+                return (
+                  <Table.HeaderCell>
+                    {md.alias}
+                  </Table.HeaderCell>
+                );
+
+              })}
+
+
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+          {transactionDataPaginated.map(sd => {
+            return (
+              <Table.Row>
+                <Table.Cell>
+                  {sd.restaurantId}
+                </Table.Cell>
+                <Table.Cell>
+                  {Restaurant.map(rest => {
+                    if (rest.Id === sd.restaurantId) {
+                      return (
+                        rest.Name
+                      );
+                    }
+                  })}
+                </Table.Cell>
+                <Table.Cell>{sd.busDt}</Table.Cell>
+
+                <Table.Cell>{sd.orderNumber}</Table.Cell>
+
+                <Table.Cell>{sd.orderTime}</Table.Cell>
+
+                {metricDefinitions.map(metr=>{
+
+                  const  metricCodeName = metr.metricCode.charAt(0).toLowerCase() + metr.metricCode.slice(1);
+                  return(<Table.Cell>{dataFormating(sd[metricCodeName], metr)}</Table.Cell>)
+                })}
+
+              </Table.Row>
+            );
+
+          })}
+        </Table.Body>
+          
+          
+
+          <Table.Footer>
+            <Table.Row>
+              <Table.HeaderCell colSpan='3'>
+               <Pagination
+                  activePage ={activePage}
+                  onPageChange={(event, data) => handlePaginationChange(data.activePage)}
+                  totalPages={totalNumberOfPages}
+               >
+               </Pagination>
+              </Table.HeaderCell>
+            </Table.Row>
+          </Table.Footer>
+        </Table>
+        }
+      </Segment>
+      
+      
+
     </Container>
+    </body>
   );
 }
 
@@ -276,17 +390,41 @@ async function getData(url) {
 
 
 async function postRequest(url, requestBody) {
-   const response = await fetch(url, {
+  const response = await fetch(url, {
     method: "POST",
     cache: "no-cache",
     headers: {
-       "Content-Type": "application/json"
+      "Content-Type": "application/json"
     },
     body: JSON.stringify(requestBody)
   });
 
   return response.json()
-  
+
 }
 
+function dataFormating(value, metricDefinition){
+  let formatedData = "";
+  switch (metricDefinition.dataType) {
+    case "Money":
+          formatedData = `$${value.toFixed(metricDefinition.decimalPlaces)}`
+      break;
+    case "Percent":
+          formatedData = `${(value*100).toFixed(metricDefinition.decimalPlaces)}%`
+      break;
+    case "Number":
+          formatedData = value.toFixed(metricDefinition.decimalPlaces)
+      break;    
+    
+    default:
+      break;
+  }
+
+  return formatedData;
+}
+
+
+
 export default App;
+
+

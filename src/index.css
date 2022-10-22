@@ -6,17 +6,21 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+  background-color: aquamarine;
 }
 
 header {
   text-align: center;
   color:black;
-  background-color: aquamarine;
+  background-color: rgb(174, 255, 127);
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+container{
+  background-color: aquamarine;
 }
 
