@@ -15,6 +15,11 @@ header {
   background-color: rgb(174, 255, 127);
 }
 
+.Container {
+  text-align: center;
+  color:red;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
