@@ -225,7 +225,7 @@ function App() {
                       fluid
                       selection
                       options={metricCodeOptions}
-                      value={data[index]}
+                      value={data.metricCode}
                       onChange={(event, data) => {
                         handleMetricChange("metricCode", index, data.value);
                       }} />
@@ -235,12 +235,12 @@ function App() {
                     <label>CompareOperators</label>
 
                     <Dropdown
-                      placeholder='Compare Operation'
+                      
                       compact
                       fluid
                       selection
                       options={compareOptions}
-                      value={data[index]}
+                      value={data.compareType}
                       onChange={(event, data) => {
                         handleMetricChange("compareType", index, data.value);
                       }}
@@ -251,7 +251,7 @@ function App() {
                     {/** Input component to store user entered value for selected metric */}
                     <Input
                       type='number'
-                      value={data[index]}
+                      value={data.value}
                       placeholder={'value'}
                       onChange={(event, data) => {
                         handleMetricChange("value", index, Number.parseInt(data.value));
