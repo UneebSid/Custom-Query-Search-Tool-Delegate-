@@ -1,7 +1,7 @@
 
 import Header from './Header';
 import { getData, postRequest, dataFormating } from './functions.js';
-import { Container, Segment, Dropdown, Input, Form, Table, Pagination, Icon, Button } from 'semantic-ui-react';
+import { Container, Segment, Dropdown, Input, Form, Table, Pagination, Icon, Button, Transition } from 'semantic-ui-react';
 import { useState, useEffect } from 'react';
 import { ReactDatez } from 'react-datez';
 import Restaurant from './Datafiles/RestaurantData.json';
@@ -32,22 +32,30 @@ function App() {
   }])
 
   const onADD = () => {
-
-    metricCriteria.push({
+      const newArray = [...metricCriteria]
+      
+    newArray.push({
       "metricCode": "string",
       "compareType": "string",
       "value": 0
     })
+    setMetricCriteria(newArray)
   }
+  
+
+   const onDelete = (index)=> {
+     const list=[...metricCriteria]
+      list.splice(index,1)
+      setMetricCriteria(list);
+   
+}
 
 
   const handleMetricChange = (prop, index, value) => {
     const newArray = [...metricCriteria];
-    metricCriteria[index][prop] = value;
-
-
+    newArray[index][prop] = value;
     setMetricCriteria(newArray);
-
+    
   }
 
 
@@ -108,6 +116,7 @@ function App() {
       });
   }, [])
 
+    console.log(metricCriteria)
 
   return (
 
@@ -201,13 +210,14 @@ function App() {
             </Form.Field>
           </Form.Group>
 
+         
           {metricCriteria.map((data, index) => {
 
 
             return (
-              <>
-                <Form.Group>
 
+                <Form.Group>
+                      
                   <Form.Field>
 
                     <label>Metric criteria</label>
@@ -236,13 +246,9 @@ function App() {
                       }}
                     />
                   </Form.Field>
-
                   <Form.Field >
-
                     <label>Value</label>
-
                     {/** Input component to store user entered value for selected metric */}
-
                     <Input
                       type='number'
                       value={data[index]}
@@ -251,19 +257,30 @@ function App() {
                         handleMetricChange("value", index, Number.parseInt(data.value));
                       }}
                     />
-
                   </Form.Field>
-
-
+                  {metricCriteria.length <= 1 ? <p></p> :
+                    <Form.Field>
+                      <label>Delete</label>
+                      <Button
+                        icon
+                        basic
+                        color='red'
+                        compact
+                        onClick={() => {
+                          onDelete(index);
+                          
+                        }} >
+                        <Icon name='delete' />
+                      </Button>
+                    </Form.Field>}
+                  
                 </Form.Group>
-
-
-              </>
+                
             )
 
 
           })}
-
+          
 
 
           {metricCriteria.length >= metricCodeOptions.length ? <p></p> :
@@ -358,7 +375,7 @@ function App() {
 
             <Table.Footer>
               <Table.Row>
-                <Table.HeaderCell colSpan='6'>
+                <Table.HeaderCell colSpan='7'>
                   <Pagination
                     activePage={activePage}
                     onPageChange={(event, data) => handlePaginationChange(data.activePage)}
@@ -383,22 +400,5 @@ function App() {
 export default App;
 
 
-//  const onDelete = (index)=> {
-//   metricCriteria.splice(index,1)
-// }
 
-// {metricCriteria.length <= 1 ? <p></p> :
 
-//   <Form.Field>
-//     <label>Delete</label>
-//   <Button 
-//     icon
-//     basic
-//     color = 'red'
-//     compact
-//     onClick = {()=>{
-//       onDelete(index);
-//     }} >
-//     <Icon name ='delete'/>
-//   </Button>
-//   </Form.Field>}
