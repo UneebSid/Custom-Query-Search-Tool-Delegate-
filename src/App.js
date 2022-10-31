@@ -1,7 +1,7 @@
 
 import Header from './Header';
 import { getData, postRequest, dataFormating } from './functions.js';
-import { Container, Segment, Dropdown, Input, Form, Table, Pagination } from 'semantic-ui-react';
+import { Container, Segment, Dropdown, Input, Form, Table, Pagination, Icon, Button } from 'semantic-ui-react';
 import { useState, useEffect } from 'react';
 import { ReactDatez } from 'react-datez';
 import Restaurant from './Datafiles/RestaurantData.json';
@@ -20,12 +20,36 @@ function App() {
   const [toHour, setToHour] = useState(29);
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
-  const [compareType, setCompareType] = useState();
   const [metricDefinitions, setMetricDefinitions] = useState([]);
-  const [metricCode, setMetricCode] = useState("");
-  const [compareValue, setCompareValue] = useState(0);
   const [searchedData, setSearchData] = useState([]);
   const [activePage, setActivePage] = useState(1)
+
+  const [metricCriteria, setMetricCriteria] = useState([{
+    "metricCode": "string",
+    "compareType": "string",
+    "value": 0
+
+  }])
+
+  const onADD = () => {
+
+    metricCriteria.push({
+      "metricCode": "string",
+      "compareType": "string",
+      "value": 0
+    })
+  }
+
+
+  const handleMetricChange = (prop, index, value) => {
+    const newArray = [...metricCriteria];
+    metricCriteria[index][prop] = value;
+
+
+    setMetricCriteria(newArray);
+
+  }
+
 
   const noOfRows = 20;
   const totalNumberOfPages = Math.ceil(searchedData.length / 20)
@@ -62,14 +86,7 @@ function App() {
       toDate: toDate,
       fromHour: fromHour,
       toHour: toHour,
-      metricCriteria: [
-        {
-          "metricCode": metricCode,
-          "compareType": compareType,
-          "value": compareValue
-
-        }
-      ]
+      metricCriteria: metricCriteria
     }
 
     postRequest("https://customsearchquerytoolapi.azurewebsites.net/Search/Query", input)
@@ -92,17 +109,14 @@ function App() {
   }, [])
 
 
-
-
-
   return (
 
     <Container >
 
-      <Header title='Restaurant Query Search Tool' />
+      <Header title='Restaurant Query Search Tool' fluid />
 
       <Segment >
-        <Form onSubmit={submit} >
+        <Form onSubmit={() => { submit() }} >
           <Form.Field>
 
             {/*Resturents dropdown */}
@@ -151,7 +165,7 @@ function App() {
                 allowPast={true}
                 dateFormat={"MM/DD/YYYY"}
                 placeholder={"MM-DD-YYYY"}
-                startDate={"10-01-2021"}
+                startDate={fromDate}
                 endDate={"10-31-2021"} />
 
 
@@ -187,59 +201,88 @@ function App() {
             </Form.Field>
           </Form.Group>
 
-          <Form.Group>
+          {metricCriteria.map((data, index) => {
+
+
+            return (
+              <>
+                <Form.Group>
+
+                  <Form.Field>
+
+                    <label>Metric criteria</label>
+                    <Dropdown
+                      fluid
+                      selection
+                      options={metricCodeOptions}
+                      value={data[index]}
+                      onChange={(event, data) => {
+                        handleMetricChange("metricCode", index, data.value);
+                      }} />
+
+                  </Form.Field>
+                  <Form.Field>
+                    <label>CompareOperators</label>
+
+                    <Dropdown
+                      placeholder='Compare Operation'
+                      compact
+                      fluid
+                      selection
+                      options={compareOptions}
+                      value={data[index]}
+                      onChange={(event, data) => {
+                        handleMetricChange("compareType", index, data.value);
+                      }}
+                    />
+                  </Form.Field>
+
+                  <Form.Field >
+
+                    <label>Value</label>
+
+                    {/** Input component to store user entered value for selected metric */}
+
+                    <Input
+                      type='number'
+                      value={data[index]}
+                      placeholder={'value'}
+                      onChange={(event, data) => {
+                        handleMetricChange("value", index, Number.parseInt(data.value));
+                      }}
+                    />
+
+                  </Form.Field>
+
+
+                </Form.Group>
+
+
+              </>
+            )
+
+
+          })}
+
+
+
+          {metricCriteria.length >= metricCodeOptions.length ? <p></p> :
             <Form.Field>
 
-              <label>Metric criteria</label>
-
-              <Dropdown
-
-                fluid
-                selection
-                options={metricCodeOptions}
-                value={metricCode}
-                onChange={(event, data) => {
-                  setMetricCode(data.value);
-
-                }} />
-
+              <label>Add Criteria</label>
+              <Button
+                icon
+                color='black'
+                onClick={() => {
+                  onADD();
+                }
+                }
+              >
+                <Icon name='add' />
+              </Button>
 
             </Form.Field>
-
-            <Form.Field>
-
-              <label>CompareOperators</label>
-
-              <Dropdown
-                placeholder='Compare Operation'
-                compact
-                fluid
-                selection
-                options={compareOptions}
-                value={compareType}
-                onChange={(event, data) => {
-                  setCompareType(data.value)
-                }}
-              />
-            </Form.Field>
-
-            <Form.Field >
-
-              <label>Value</label>
-
-              {/** Input component to store user entered value for selected metric */}
-
-              <Input
-                type='number'
-                value={compareValue}
-                placeholder={'value'}
-                onChange={(event, data) => {
-                  setCompareValue(Number.parseInt(data.value));
-                }}
-              />
-
-            </Form.Field>
-          </Form.Group>
+          }
 
           <Form.Button color='black'>submit</Form.Button>
         </Form>
@@ -338,3 +381,24 @@ function App() {
 
 
 export default App;
+
+
+//  const onDelete = (index)=> {
+//   metricCriteria.splice(index,1)
+// }
+
+// {metricCriteria.length <= 1 ? <p></p> :
+
+//   <Form.Field>
+//     <label>Delete</label>
+//   <Button 
+//     icon
+//     basic
+//     color = 'red'
+//     compact
+//     onClick = {()=>{
+//       onDelete(index);
+//     }} >
+//     <Icon name ='delete'/>
+//   </Button>
+//   </Form.Field>}
